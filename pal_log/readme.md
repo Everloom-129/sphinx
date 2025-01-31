@@ -4,6 +4,37 @@
 
 ### real world robot
 
+- [ ] modify the realsense camera part
+- [ ] rewrite the record_demo.py 
+- [ ] collect data for pick and place
+- [ ] collect data for spin and lock
+- [ ] collect data for open and close drawer
+
+#### Data Collection Methods
+
+- [x] Tested two methods for real world data collection:
+  - VR with XYZ position control
+    - [x] Good for simple single-stage tasks
+      - Pick and place
+      - Open/close gripper
+    - [ ] Not ideal for spin motions
+      - Only needs wrist joint movement
+      - VR causes whole robot arm to spin
+  
+  - Gello controller
+    - [x] More difficult to use initially
+    - [x] Better for spin motions
+    - [x] Allows more joint-specific control
+
+### Current Progress
+
+- [x] Collected data for espresso machine tasks
+- [ ] Working on challenges:
+  - [ ] Spin knob motion
+  - [ ] Spin and lock coffee maker handle
+- [ ] Testing spacemouse controller
+  - [x] Borrowed from Leon
+  - [ ] Initial testing in progress
 
 Let me analyze the workspace structure and key interfaces for controlling the robot:
 
@@ -319,3 +350,24 @@ Would you like me to elaborate on any of these aspects or provide more specific 
 ### perception
 
 1. tools/vis
+
+
+
+
+### Simulation
+
+
+TODO:
+- [ ] Debug why pick and stack policy is not working
+- [x] Analyze training results:
+  - 25 demonstrations collected
+  - 30 epochs trained
+  - Two-stage task:
+    1. Pick up small red block
+    2. Stack red block on big block
+- [ ] Investigate why transformer-based waypoint policy fails to learn
+- [ ] Try potential improvements:
+  - [ ] Collect more demonstrations
+  - [ ] Adjust model architecture
+  - [ ] Tune hyperparameters
+  - [ ] Add auxiliary losses

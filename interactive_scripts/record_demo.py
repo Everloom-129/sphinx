@@ -9,6 +9,7 @@ from scipy.spatial.transform import Rotation as R
 import msgpack
 import numpy as np
 
+# Sphinx open source code on Diffusion Policy data collection
 from interactive_scripts.interactive_utils import serve
 from interactive_scripts.spacemouse_utils.spacemouse import SpaceMouseInterface
 import common_utils
@@ -389,7 +390,7 @@ if __name__ == "__main__":
     parser.add_argument("--num_point", type=int, default=20000)
     parser.add_argument("--stream_freq", type=int, default=20)
     parser.add_argument("--control_freq", type=int, default=10)
-    parser.add_argument("--data_folder", type=str, default="/scr/priyasun/interface_testing/data/dev1")
+    parser.add_argument("--data_folder", type=str, default="data/real1/")
     parser.add_argument("--env_cfg", type=str, default="envs/fr3.yaml")
     args = parser.parse_args()
 
