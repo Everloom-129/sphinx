@@ -4,7 +4,7 @@ import cv2
 import imageio
 import matplotlib.pyplot as plt
 import os
-from dataset_utils.pointcloud_dataloader import PointCloudDataset
+from vis_pred import PointCloudDataset
 import torch
 import logging
 import sys
