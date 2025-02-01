@@ -118,6 +118,7 @@ def main():
     server = PolyMetisServer()
     s = zerorpc.Server(server)
     s.bind("tcp://0.0.0.0:4242")
+    print("PolyMetisServer running on port 4242...")
     s.run()
 
 

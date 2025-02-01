@@ -10,6 +10,7 @@ from envs.robot_utils import Proprio, WaypointReach, WaypointReachConfig, MoveEr
 from envs.franka_env_config import FrankaEnvConfig
 from interactive_scripts.dataset_recorder import DatasetRecorder, ActMode
 
+import pdb
 
 class FrankaEnv:
     def __init__(self, cfg: FrankaEnvConfig):
@@ -21,12 +22,13 @@ class FrankaEnv:
         proprio = self.controller.get_proprio()
         self.home_pos = proprio.eef_pos
         self.home_euler = proprio.eef_euler
+        pdb.set_trace()
 
         if cfg.parallel_camera:
             self.camera = ParallelCameras(cfg.cameras)
         else:
             self.camera = SequentialCameras(cfg.cameras)
-
+        pdb.set_trace()
 
     def reset(self):
         self.move_to(self.home_pos, self.home_euler, gripper_open=1, control_freq=10)
@@ -213,8 +215,8 @@ class FrankaEnv:
         self.update_gripper(gripper_open, control_freq, recorder)
         self.curr_gripper_open = gripper_open
 
-    def __del__(self):
-        del self.camera
+    # def __del__(self):
+    #     del self.camera
 
 
 def move():
@@ -241,7 +243,7 @@ def show():
     cfg = pyrallis.parse(config_class=FrankaEnvConfig)  # type: ignore
     # cfg.show_camera = 1
     env = FrankaEnv(cfg)
-
+    
     # warm up
     stopwatch = Stopwatch()
     for i in range(500):

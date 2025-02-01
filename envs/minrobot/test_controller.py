@@ -5,7 +5,7 @@ from controller import Controller, ControllerConfig
 
 
 def goto(target_x, target_y, target_z, delta, max_step):
-    cfg = ControllerConfig(server_ip="tcp://172.16.0.1:4242")
+    cfg = ControllerConfig(server_ip="tcp://172.16.0.4:4242")
     client = Controller(cfg)
     client.reset(False)
 

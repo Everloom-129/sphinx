@@ -7,7 +7,7 @@ from envs.robot_utils import Proprio, position_action_to_delta_action
 
 @dataclass
 class ControllerConfig:
-    server_ip: str = "localhost:4242"
+    server_ip: str = "tcp://172.16.0.4:4242"
     max_pos_delta: float = 0.05
     max_euler_delta: float = 0.2
 
