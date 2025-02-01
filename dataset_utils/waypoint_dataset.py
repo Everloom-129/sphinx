@@ -201,6 +201,7 @@ class PointCloudDatasetConfig:
             "drawer": os.path.join(PROJECT_ROOT, "data/drawer"),
             "cups": os.path.join(PROJECT_ROOT, "data/cups"),
             "trainbridge": os.path.join(PROJECT_ROOT, "data/trainbridge"),
+            "stack": os.path.join(PROJECT_ROOT, "data/stack"),
         }
         if self.path in DATASETS:
             self.path = DATASETS[self.path]
