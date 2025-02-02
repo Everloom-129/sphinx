@@ -4,7 +4,7 @@
 
 ### real world robot
 
-- [ ] modify the realsense camera part
+- [x] modify the realsense camera part
 - [ ] rewrite the record_demo.py 
 - [ ] collect data for pick and place
 - [ ] collect data for spin and lock
@@ -49,7 +49,7 @@ a) **Testing Basic Movement**:
 
 ```7:36:envs/minrobot/test_controller.py
 def goto(target_x, target_y, target_z, delta, max_step):
-    cfg = ControllerConfig(server_ip="tcp://172.16.0.1:4242")
+    cfg = ControllerConfig(server_ip="tcp://172.16.0.4:4242")
     client = Controller(cfg)
     client.reset(False)
 
