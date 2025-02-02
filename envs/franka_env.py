@@ -4,7 +4,8 @@ import numpy as np
 
 import common_utils
 from envs.minrobot.controller import Controller
-from envs.minrobot.camera import ParallelCameras, SequentialCameras
+# from envs.minrobot.camera import ParallelCameras, SequentialCameras
+from envs.minrobot.camera_zed import ParallelCameras, SequentialCameras
 from envs.robot_utils import get_waypoint, get_ori
 from envs.robot_utils import Proprio, WaypointReach, WaypointReachConfig, MoveErrorPlot
 from envs.franka_env_config import FrankaEnvConfig
@@ -22,13 +23,12 @@ class FrankaEnv:
         proprio = self.controller.get_proprio()
         self.home_pos = proprio.eef_pos
         self.home_euler = proprio.eef_euler
-        pdb.set_trace()
+        # pdb.set_trace()
 
         if cfg.parallel_camera:
             self.camera = ParallelCameras(cfg.cameras)
         else:
             self.camera = SequentialCameras(cfg.cameras)
-        pdb.set_trace()
 
     def reset(self):
         self.move_to(self.home_pos, self.home_euler, gripper_open=1, control_freq=10)

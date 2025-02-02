@@ -4,8 +4,13 @@
 
 import numpy as np
 import cv2
-import pyzed.sl as sl
 import multiprocessing as mp
+import yaml
+
+try:
+    import pyzed.sl as sl
+except ModuleNotFoundError:
+    print("WARNING: You have not setup the ZED cameras, and currently cannot use them")
 
 
 """
@@ -25,44 +30,30 @@ class ZEDCamera:
         self.width = width
         self.height = height
         self.use_depth = use_depth
-        self.serial_number = serial_number
-        self.exposure = exposure
-
+        
         # Initialize ZED camera
-        self.zed = sl.Camera()
         init_params = sl.InitParameters()
-        init_params.camera_resolution = sl.RESOLUTION.HD720  # You can adjust this
+        init_params.camera_resolution = sl.RESOLUTION.HD720
         init_params.camera_fps = 30
         init_params.depth_mode = sl.DEPTH_MODE.PERFORMANCE if use_depth else sl.DEPTH_MODE.NONE
-        init_params.coordinate_units = sl.UNIT.MILLIMETER
         init_params.set_from_serial_number(int(serial_number))
-
-        # Open the camera
+        
+        self.zed = sl.Camera()
         err = self.zed.open(init_params)
         if err != sl.ERROR_CODE.SUCCESS:
             raise RuntimeError(f"Failed to open ZED camera: {err}")
-
-        # Set camera settings
+            
         if exposure > 0:
             self.zed.set_camera_settings(sl.VIDEO_SETTINGS.EXPOSURE, exposure)
-
-        # Prepare runtime parameters
+            
         self.runtime_params = sl.RuntimeParameters()
-        if self.use_depth:
-            self.runtime_params.confidence_threshold = 50
-            self.runtime_params.texture_confidence_threshold = 100
-
-        # Create image objects
         self.image = sl.Mat()
         self.depth = sl.Mat() if use_depth else None
 
-        # Warm up camera
-        for _ in range(2):
-            self.zed.grab(self.runtime_params)
-
     def get_intrinsics(self):
-        calibration_params = self.zed.get_camera_information().calibration_parameters
-        left_cam = calibration_params.left_cam
+        # Get camera information and calibration parameters
+        camera_info = self.zed.get_camera_information()
+        left_cam = camera_info.camera_configuration.calibration_parameters.left_cam
         return dict(
             matrix=np.array([
                 [left_cam.fx, 0, left_cam.cx],
@@ -71,7 +62,7 @@ class ZEDCamera:
             ]),
             width=self.width,
             height=self.height,
-            depth_scale=1.0,  # ZED depth is in millimeters by default
+            depth_scale=1.0,
         )
 
     def get_frames(self) -> dict[str, np.ndarray]:
@@ -81,17 +72,15 @@ class ZEDCamera:
         # Get color image
         self.zed.retrieve_image(self.image, sl.VIEW.LEFT)
         image = self.image.get_data()
-        image = cv2.resize(image, (self.width, self.height), interpolation=cv2.INTER_AREA)
+        image = cv2.resize(image, (self.width, self.height))
         frames = dict(image=image)
 
         # Get depth if enabled
         if self.use_depth:
             self.zed.retrieve_measure(self.depth, sl.MEASURE.DEPTH)
             depth = self.depth.get_data()
-            depth = cv2.resize(depth, (self.width, self.height), interpolation=cv2.INTER_NEAREST)
-            if len(depth.shape) == 2:
-                depth = np.expand_dims(depth, axis=-1)
-            frames["depth"] = depth
+            depth = cv2.resize(depth, (self.width, self.height))
+            frames["depth"] = depth[..., np.newaxis]
 
         return frames
 
@@ -101,25 +90,19 @@ class ZEDCamera:
 
 class SequentialCameras:
     def __init__(self, camera_args_list: list[dict]):
-        self.name_to_camera_args = {}
         self.cameras: dict[str, ZEDCamera] = {}
         for camera_args in camera_args_list:
             name = camera_args.pop("name")
-            self.name_to_camera_args[name] = camera_args
             self.cameras[name] = ZEDCamera(**camera_args)
 
     def get_intrinsics(self, name):
         return self.cameras[name].get_intrinsics()
 
     def get_frames(self):
-        frames = {}
-        for name, camera in self.cameras.items():
-            frames[name] = camera.get_frames()
-        return frames
+        return {name: camera.get_frames() for name, camera in self.cameras.items()}
 
     def __del__(self):
-        # FIXME: well
-        for _, camera in self.cameras.items():
+        for camera in self.cameras.values():
             camera.close()
 
 
@@ -189,17 +172,32 @@ class ParallelCameras:
 
 
 if __name__ == "__main__":
-    from envs.franka_env_config import FrankaEnvConfig
-    import pyrallis
-    from common_utils import FreqGuard, Stopwatch
-
-    cfg = pyrallis.parse(config_class=FrankaEnvConfig)  # type: ignore
-    # cfg.show_camera = 1
-      
-    if cfg.parallel_camera:
-        camera = ParallelCameras(cfg.cameras)
-    else:
-        camera = SequentialCameras(cfg.cameras)
-
-    frames = camera.get_frames()
-    print(frames)
+    # Load camera configuration from yaml file
+    with open("envs/fr3.yaml", "r") as f:
+        config = yaml.safe_load(f)
+    
+    # Get the first camera configuration and ensure it has a name
+    camera_args = config["cameras"][0]  # Using the first camera from the yaml
+    
+    print(f"Camera constructed: {camera_args}")
+    cameras = SequentialCameras([camera_args])
+    if "name" not in camera_args:
+        camera_args["name"] = "agent1"  # Provide a default name if none exists
+    
+    # Test getting intrinsics
+    intrinsics = cameras.get_intrinsics(camera_args["name"])
+    print("Camera intrinsics:", intrinsics)
+    
+    # Test getting frames
+    try:
+        for i in range(10):  # Get 10 frames
+            frames = cameras.get_frames()
+            print(f"Frame {i}:")
+            for camera_name, camera_frames in frames.items():
+                print(f"  Camera {camera_name}:")
+                for key, frame in camera_frames.items():
+                    print(f"    {key} shape: {frame.shape}")
+    except KeyboardInterrupt:
+        print("\nTest stopped by user")
+    finally:
+        del cameras

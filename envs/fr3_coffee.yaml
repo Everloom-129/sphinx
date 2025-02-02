@@ -1,6 +1,6 @@
 cameras:
   - name: agent1
-    serial_number: "26368109"
+    serial_number: "25455306"
     width: 640
     height: 480
     use_depth: True
